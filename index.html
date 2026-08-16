@@ -157,6 +157,26 @@
 
   .ic-discord  { background: #5865f2; }
   .ic-twitch   { background: #9146ff; }
+
+  .live-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(220, 38, 38, 0.9);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    animation: pulse 2s infinite;
+    z-index: 10;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(0.95); }
+  }
   .ic-tiktok   { background: #010101; }
   .ic-spotify  { background: #1db954; }
   .ic-youtube  { background: #ff0000; }
@@ -436,6 +456,57 @@ function animateParticles() {
 }
 
 animateParticles();
+
+// ===== Twitch Live Status Check =====
+const TWITCH_CLIENT_ID = '2os58kl91pg2xgvptcenjk0ud1xsn0';
+const CHANNEL_NAME = 'mrnightwither';
+
+async function checkTwitchLiveStatus() {
+  try {
+    // Twitch Helix API abfragen (ohne OAuth Token, nur mit Client ID)
+    const response = await fetch(
+      `https://api.twitch.tv/helix/streams?user_login=${CHANNEL_NAME}`,
+      {
+        headers: {
+          'Client-ID': TWITCH_CLIENT_ID
+        }
+      }
+    );
+    
+    if (!response.ok) throw new Error('Twitch API Error');
+    
+    const data = await response.json();
+    const isLive = data.data && data.data.length > 0;
+    
+    // Twitch Link finden
+    const twitchLink = document.querySelector('[href*="twitch.tv/mrnightwither"]')?.closest('.link-card');
+    if (!twitchLink) return;
+    
+    const liveBadge = twitchLink.querySelector('.live-badge');
+    
+    if (isLive) {
+      // Live → Badge anzeigen
+      if (!liveBadge) {
+        const badge = document.createElement('div');
+        badge.className = 'live-badge';
+        badge.innerHTML = '🔴 LIVE';
+        twitchLink.style.position = 'relative';
+        twitchLink.appendChild(badge);
+      }
+    } else {
+      // Nicht live → Badge entfernen
+      if (liveBadge) liveBadge.remove();
+    }
+  } catch (error) {
+    console.error('Twitch Status Check Error:', error);
+  }
+}
+
+// Beim Laden prüfen
+checkTwitchLiveStatus();
+
+// Alle 60 Sekunden aktualisieren
+setInterval(checkTwitchLiveStatus, 60000);
 </script>
 
 </body>
