@@ -402,10 +402,42 @@ function markFound(id) {
   return list.length;
 }
 
+// Code in die Zwischenablage. Die Clipboard-API gibt es nur in sicherem Kontext,
+// darum als Rueckfall den Text markieren - dann reicht Strg+C bzw. Kopieren.
+function copyCode(btn, code) {
+  const zeigeErfolg = () => {
+    const label = btn.querySelector('.secret-code-text');
+    const vorher = label.textContent;
+    label.textContent = 'Kopiert';
+    btn.classList.add('kopiert');
+    setTimeout(() => {
+      label.textContent = vorher;
+      btn.classList.remove('kopiert');
+    }, 1400);
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(code).then(zeigeErfolg, () => selectCode(btn));
+  } else {
+    selectCode(btn);
+  }
+}
+
+function selectCode(btn) {
+  const label = btn.querySelector('.secret-code-text');
+  const range = document.createRange();
+  range.selectNodeContents(label);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
 function revealSecret(code, betrag, id) {
   if (!secretsEnabled || !secretReveal || !secretReveal.hidden) return;
   const gefunden = markFound(id);
-  secretReveal.querySelector('.secret-code').textContent = code;
+  const codeBtn = secretReveal.querySelector('.secret-code');
+  codeBtn.querySelector('.secret-code-text').textContent = code;
+  codeBtn.setAttribute('aria-label', 'Rabattcode ' + code + ' kopieren');
+  codeBtn.onclick = () => copyCode(codeBtn, code);
   secretReveal.querySelector('.secret-note').textContent =
     betrag + ' Rabatt im Shop, ohne Mindestbestellwert. Nur einmal insgesamt einlösbar – wer zuerst kommt.';
   secretReveal.querySelector('.secret-progress').textContent =

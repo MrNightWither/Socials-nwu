@@ -634,6 +634,12 @@
     padding-right: 20px;
   }
   .secret-code {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 44px;
     font-family: Rajdhani, 'Arial Narrow', system-ui, sans-serif;
     font-weight: 700;
     font-size: 1.6rem;
@@ -643,10 +649,26 @@
     border: 1px dashed rgba(201,168,76,0.5);
     border-radius: 6px;
     padding: 8px 12px;
-    text-align: center;
     margin-bottom: 10px;
-    user-select: all;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
   }
+  .secret-code:hover, .secret-code:focus-visible {
+    background: rgba(201,168,76,0.18);
+    border-color: var(--gold);
+  }
+  .secret-code-icon {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: var(--gold);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .secret-code.kopiert { border-style: solid; border-color: var(--gold); }
+  .secret-code.kopiert .secret-code-icon { stroke: var(--gold-hi); }
   .secret-note {
     font-size: 0.82rem;
     color: var(--muted);
@@ -856,7 +878,13 @@
 <div class="secret-reveal" id="secretReveal" role="dialog" aria-modal="false" aria-label="Geheimnis gefunden" hidden>
   <button class="secret-close" type="button" aria-label="Schließen">&times;</button>
   <p class="secret-title">Geheimnis gefunden</p>
-  <p class="secret-code"></p>
+  <button class="secret-code" id="secretCode" type="button">
+    <span class="secret-code-text"></span>
+    <svg class="secret-code-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <rect x="9" y="9" width="11" height="11" rx="2"/>
+      <path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/>
+    </svg>
+  </button>
   <p class="secret-note"></p>
   <p class="secret-progress"></p>
   <a class="secret-cta" href="https://shop.nightwither.de">Im Shop einlösen</a>
@@ -864,7 +892,7 @@
 
 <span class="visually-hidden" id="hexStatus" role="status" aria-live="polite"></span>
 
-<script src="site.js?v=20260911f"></script>
+<script src="site.js?v=20260911g"></script>
 
 </body>
 </html>
