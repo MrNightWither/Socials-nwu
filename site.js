@@ -177,18 +177,29 @@ function drawParticles(now) {
 drawParticles(performance.now());
 
 // ---------- Live Status ----------
-// Liest den Status, den du im Admin Panel setzt (Firestore status/twitch).
-// Nur Lesezugriff, kein Schlüssel nötig, die Firestore Regeln erlauben das Lesen.
+// 1. Worker /live: erkennt Twitch automatisch und beachtet zusätzlich den Sicherheits-Schalter im Admin Panel.
+// 2. Ist der Worker nicht erreichbar: nur der Schalter aus dem Admin Panel (Firestore status/twitch), wie früher.
+// Nur Lesezugriff, kein Schlüssel nötig.
+const LIVE_URL = 'https://nwu-anmeldung.nwu-brand.workers.dev/live';
 const STATUS_URL = 'https://firestore.googleapis.com/v1/projects/adminpannel-f0aab/databases/(default)/documents/status/twitch';
+
+async function liveAbfragen() {
+  try {
+    const res = await fetch(LIVE_URL, { cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer' });
+    if (res.ok) { const j = await res.json(); if (typeof j.live === 'boolean') return j.live; }
+  } catch (e) { /* weiter mit dem Admin-Panel-Schalter */ }
+  const res = await fetch(STATUS_URL, { cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer' });
+  if (!res.ok) return null;
+  const json = await res.json();
+  return Boolean(json && json.fields && json.fields.isLive && json.fields.isLive.booleanValue === true);
+}
 
 async function checkLiveStatus() {
   const twitchCard = document.querySelector('a[href^="https://twitch.tv/mrnightwither"]');
   if (!twitchCard) return;
   try {
-    const res = await fetch(STATUS_URL, { cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer' });
-    if (!res.ok) return;
-    const json = await res.json();
-    const isLive = json && json.fields && json.fields.isLive && json.fields.isLive.booleanValue === true;
+    const isLive = await liveAbfragen();
+    if (isLive === null) return;
 
     const existing = twitchCard.querySelector('.live-badge');
     if (isLive && !existing) {
