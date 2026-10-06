@@ -177,47 +177,71 @@ function drawParticles(now) {
 drawParticles(performance.now());
 
 // ---------- Live Status ----------
-// 1. Worker /live: erkennt Twitch automatisch und beachtet zusätzlich den Sicherheits-Schalter im Admin Panel.
-// 2. Ist der Worker nicht erreichbar: nur der Schalter aus dem Admin Panel (Firestore status/twitch), wie früher.
+// 1. Worker /live: weiß je Plattform, wo gerade gestreamt wird (Streamer.bot meldet Twitch, Kick,
+//    YouTube und TikTok; dazu die Notfall-Schalter im Admin Panel).
+// 2. Ist der Worker nicht erreichbar: nur der alte Twitch-Schalter (Firestore status/twitch).
+// Live-Knöpfe bekommen einen sanften roten Schimmer und einen kleinen „live“-Punkt.
 // Nur Lesezugriff, kein Schlüssel nötig.
 const LIVE_URL = 'https://nwu-anmeldung.nwu-brand.workers.dev/live';
 const STATUS_URL = 'https://firestore.googleapis.com/v1/projects/adminpannel-f0aab/databases/(default)/documents/status/twitch';
+const LIVE_KARTEN = {
+  twitch: 'a[href^="https://twitch.tv/mrnightwither"]',
+  kick: 'a[href^="https://kick.com/mrnightwither"]',
+  youtube: 'a[href^="https://youtube.com/@MrNightwither"]',
+  tiktok: 'a[href^="https://www.tiktok.com/@mrnightwither_"]'
+};
+const LIVE_PRUEFEN_MS = 60000;
 
 async function liveAbfragen() {
   try {
     const res = await fetch(LIVE_URL, { cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer' });
-    if (res.ok) { const j = await res.json(); if (typeof j.live === 'boolean') return j.live; }
+    if (res.ok) {
+      const j = await res.json();
+      if (j && j.plattformen && typeof j.plattformen === 'object') return j.plattformen;
+      if (typeof j.live === 'boolean') return { twitch: j.live };
+    }
   } catch (e) { /* weiter mit dem Admin-Panel-Schalter */ }
   const res = await fetch(STATUS_URL, { cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer' });
   if (!res.ok) return null;
   const json = await res.json();
-  return Boolean(json && json.fields && json.fields.isLive && json.fields.isLive.booleanValue === true);
+  return { twitch: Boolean(json && json.fields && json.fields.isLive && json.fields.isLive.booleanValue === true) };
+}
+
+function liveMarkieren(karte, live) {
+  karte.classList.toggle('ist-live', live);
+  const glut = karte.querySelector('.live-glut');
+  const punkt = karte.querySelector('.live-punkt');
+  if (live && !glut) {
+    const g = document.createElement('span');
+    g.className = 'live-glut';
+    g.setAttribute('aria-hidden', 'true');
+    karte.prepend(g);
+  }
+  if (live && !punkt) {
+    const name = karte.querySelector('.link-name');
+    const p = document.createElement('span');
+    p.className = 'live-punkt';
+    p.textContent = 'live';
+    if (name) name.appendChild(p);
+  }
+  if (!live) { if (glut) glut.remove(); if (punkt) punkt.remove(); }
 }
 
 async function checkLiveStatus() {
-  const twitchCard = document.querySelector('a[href^="https://twitch.tv/mrnightwither"]');
-  if (!twitchCard) return;
   try {
-    const isLive = await liveAbfragen();
-    if (isLive === null) return;
-
-    const existing = twitchCard.querySelector('.live-badge');
-    if (isLive && !existing) {
-      const badge = document.createElement('div');
-      badge.className = 'live-badge';
-      badge.textContent = '🔴 LIVE';
-      twitchCard.style.position = 'relative';
-      twitchCard.appendChild(badge);
-    } else if (!isLive && existing) {
-      existing.remove();
-    }
+    const plattformen = await liveAbfragen();
+    if (!plattformen) return;
+    Object.keys(LIVE_KARTEN).forEach((p) => {
+      const karte = document.querySelector(LIVE_KARTEN[p]);
+      if (karte) liveMarkieren(karte, plattformen[p] === true);
+    });
   } catch (e) {
     // Still bleiben, die Seite funktioniert auch ohne Live Anzeige
   }
 }
 
 checkLiveStatus();
-setInterval(checkLiveStatus, 60000);
+setInterval(checkLiveStatus, LIVE_PRUEFEN_MS);
 
 // ---------- Hexenmodus (5x Klick auf die Krone) ----------
 const logoBtn = document.getElementById('logoBtn');
