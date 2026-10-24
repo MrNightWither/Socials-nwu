@@ -29,6 +29,9 @@ try {
 }
 
 // ---------- Partikel (Gold Funken) ----------
+// Farbe kommt aus saison.js (Halloween orange usw.), sonst das normale NWU-Gold
+const GOLD = (window.NWU_SAISON && window.NWU_SAISON.rgb) || '201, 168, 76';
+const GOLD_HI = (window.NWU_SAISON && window.NWU_SAISON.rgbHi) || '232, 201, 109';
 const canvas = document.getElementById('particle-canvas');
 const ctx = canvas.getContext('2d');
 const hexCanvas = document.getElementById('hex-sigil-canvas');
@@ -98,9 +101,9 @@ function drawSigil(p) {
     if (i === 0) hexCtx.moveTo(px, py); else hexCtx.lineTo(px, py);
   });
   hexCtx.closePath();
-  hexCtx.shadowColor = 'rgba(201, 168, 76, 0.85)';
+  hexCtx.shadowColor = `rgba(${GOLD}, 0.85)`;
   hexCtx.shadowBlur = 6;
-  hexCtx.strokeStyle = `rgba(232, 201, 109, ${p.alpha})`;
+  hexCtx.strokeStyle = `rgba(${GOLD_HI}, ${p.alpha})`;
   hexCtx.lineWidth = 1.1;
   hexCtx.stroke();
   hexCtx.restore();
@@ -154,9 +157,9 @@ function drawParticles(now) {
   particles.forEach((p) => {
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(201, 168, 76, ${p.alpha})`;
+    ctx.fillStyle = `rgba(${GOLD}, ${p.alpha})`;
     ctx.fill();
-    ctx.strokeStyle = `rgba(240, 208, 128, ${p.alpha * 0.5})`;
+    ctx.strokeStyle = `rgba(${GOLD_HI}, ${p.alpha * 0.5})`;
     ctx.lineWidth = 0.5;
     ctx.stroke();
 
