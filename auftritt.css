@@ -1,0 +1,160 @@
+/* NightWither Hauptseite – Umbau „Variante B“ (15.11.2026)
+   Großer Schriftzug wie im Shop, am Desktop zwei Spalten, Laufband mit Live-Stand / nächstem Stream.
+   Zurücksetzen: in index.html die zwei Zeilen mit „auftritt“ entfernen (und den Schriftzug wieder auf „Netzwerke“ stellen). */
+
+:root { --blood: #6b0f1a; --bone: #edeae2; }
+
+/* ---------- Kopf: Krone + großer Schriftzug ---------- */
+.header {
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 14px;
+  gap: 8px;
+  container-type: inline-size;
+}
+.header-title {
+  font-size: 15vw;          /* Rückfall für alte Browser */
+  font-size: 16.2cqw;       /* füllt genau die Spaltenbreite, egal wie breit sie ist */
+  line-height: 0.86;
+  letter-spacing: 0.01em;
+  margin-top: -6px;
+}
+.header-title span { color: var(--bone); }
+.header-sub { margin-top: 6px; }
+.header-claim { display: none; }
+
+/* ---------- Laufband ---------- */
+.band {
+  position: relative; z-index: 2;
+  align-self: stretch;
+  height: 58px;
+  margin: 0 -16px 18px;
+  overflow: hidden;
+}
+.band-in {
+  position: absolute; left: -10%; top: 12px; width: 120%;
+  padding: 8px 0;
+  overflow: hidden;
+  background: var(--blood);
+  transform: rotate(-1.6deg);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.6);
+}
+.band-track { display: flex; width: max-content; animation: bandLauf 38s linear infinite; }
+.band-track span {
+  display: inline-flex; align-items: center; gap: 14px; padding-right: 14px;
+  font-family: Rajdhani, 'Arial Narrow', system-ui, sans-serif; font-weight: 700;
+  font-size: 0.98rem; line-height: 1; letter-spacing: 0.06em;
+  text-transform: uppercase; white-space: nowrap; color: var(--bone);
+}
+.band-track img { width: 16px; height: auto; filter: brightness(0) invert(0.93); }
+@keyframes bandLauf { to { transform: translateX(-50%); } }
+
+/* Live: das Band wird heller und bekommt einen pulsierenden Punkt */
+.band.ist-live .band-in { background: #a3121f; }
+.band.ist-live .band-track span:nth-child(3n + 1)::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%; background: #fff;
+  animation: bandPunkt 1.6s ease-out infinite;
+}
+@keyframes bandPunkt { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); } 100% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); } }
+
+/* ---------- Knöpfe: Lichtstreif beim Überfahren (die Hauptknöpfe haben schon einen eigenen) ---------- */
+.link-card:not(.primary)::before {
+  content: ''; position: absolute; inset: 0; z-index: 0;
+  border-radius: inherit; pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 248, 228, 0.1) 50%, transparent 62%) no-repeat;
+  background-size: 260% 100%;
+  background-position: 0 0;
+  opacity: 0;
+}
+.link-card:not(.primary):hover::before,
+.link-card:not(.primary):focus-visible::before { opacity: 1; animation: knopfStreif 0.75s var(--ease) both; }
+@keyframes knopfStreif { from { background-position: 0 0; } to { background-position: 100% 0; } }
+
+/* ---------- Aufbau beim ersten Besuch: schneller ---------- */
+body.first-visit .header { animation-duration: 0.45s; }
+body.first-visit .header-title span { animation: titleWipe 0.7s var(--ease) 0.15s both; }
+body.first-visit .band { animation: fadeUp 0.45s ease 0.1s both; }
+body.first-visit .link-card,
+body.first-visit .divider,
+body.first-visit .legal { animation-duration: 0.45s; }
+.link-card:nth-child(1) { animation-delay: 0.05s; }
+.link-card:nth-child(2) { animation-delay: 0.10s; }
+.tiles .link-card:nth-child(1) { animation-delay: 0.15s; }
+.tiles .link-card:nth-child(2) { animation-delay: 0.18s; }
+.tiles .link-card:nth-child(3) { animation-delay: 0.21s; }
+.tiles .link-card:nth-child(4) { animation-delay: 0.24s; }
+.tiles .link-card:nth-child(5) { animation-delay: 0.27s; }
+.tiles .link-card:nth-child(6) { animation-delay: 0.30s; }
+.divider                { animation-delay: 0.32s; }
+.link-card:nth-child(5) { animation-delay: 0.34s; }
+.link-card:nth-child(6) { animation-delay: 0.38s; }
+.link-card:nth-child(7) { animation-delay: 0.42s; }
+.link-card:nth-child(8) { animation-delay: 0.46s; }
+.legal { animation-delay: 0.5s; }
+
+@media (max-width: 1023px) {
+  body { padding-top: 26px; }
+  .hex-overlay { padding-top: 0; }   /* Die Krone sitzt jetzt 14px höher, das Pentagramm rückt mit */
+}
+
+/* ---------- Desktop: links der Auftritt, rechts die Kanäle ---------- */
+@media (min-width: 1024px) {
+  body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 480px);
+    grid-template-rows: 1fr auto 1fr;
+    column-gap: clamp(48px, 6vw, 96px);
+    align-items: center;
+    padding: 48px max(48px, calc((100vw - 1180px) / 2));
+  }
+  .header {
+    grid-column: 1; grid-row: 1;
+    align-self: end;
+    max-width: none;
+    align-items: flex-start;
+    text-align: left;
+    gap: 14px;
+    margin-bottom: 0;
+  }
+  .logo-btn { margin-left: -6px; }
+  .logo { width: 150px; height: 150px; }
+  .intro-drips { top: 142px; left: 74px; }
+  .header-title { margin-top: -18px; }
+  .header-sub { font-size: 0.78rem; margin-top: 10px; }
+  .header-claim {
+    display: block;
+    max-width: 34ch;
+    color: var(--muted);
+    font-size: 1.05rem;
+    line-height: 1.55;
+    transition: opacity 0.5s ease;
+  }
+  body.hex-drawing .header-claim, body.hex-hold .header-claim { opacity: 0; }
+  .content { grid-column: 2; grid-row: 1 / 4; width: 100%; }
+  /* Das Band kommt vom linken Bildschirmrand und läuft unter dem Text aus – so ist es ohne Scrollen zu sehen */
+  .band {
+    grid-column: 1; grid-row: 2;
+    height: 92px;
+    margin: 18px 0 0 calc(max(48px, (100vw - 1180px) / 2) * -1);
+    -webkit-mask-image: linear-gradient(90deg, #000 78%, transparent);
+    mask-image: linear-gradient(90deg, #000 78%, transparent);
+  }
+  .band-in { top: 26px; padding: 11px 0; transform: rotate(-1.4deg); }
+  .band-track span { font-size: 1.2rem; gap: 18px; padding-right: 18px; }
+  .band-track img { width: 20px; }
+
+  /* Hexenmodus: Das Pentagramm sitzt über der Krone, die jetzt links steht (Position setzt auftritt.js) */
+  .hex-overlay { display: block; padding: 0; }
+  .hex-stage {
+    position: absolute;
+    left: var(--hex-x, 50%); top: var(--hex-y, 120px);
+    width: 250px;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .band-track { animation: none !important; }
+  .band.ist-live .band-track span::before { animation: none !important; }
+  .link-card:not(.primary)::before { display: none; }
+}

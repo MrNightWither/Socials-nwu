@@ -234,6 +234,8 @@ async function checkLiveStatus() {
   try {
     const plattformen = await liveAbfragen();
     if (!plattformen) return;
+    /* 15.11.2026: Das Laufband (auftritt.js) zeigt denselben Live-Stand, ohne den Worker ein zweites Mal zu fragen */
+    document.dispatchEvent(new CustomEvent('nwu-live', { detail: plattformen }));
     Object.keys(LIVE_KARTEN).forEach((p) => {
       const karte = document.querySelector(LIVE_KARTEN[p]);
       if (karte) liveMarkieren(karte, plattformen[p] === true);
