@@ -102,14 +102,13 @@ body.first-visit .legal { animation-duration: 0.45s; }
   body {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 480px);
-    grid-template-rows: 1fr auto 1fr;
+    grid-template-rows: 1fr auto auto 1fr;   /* Kopf + Band bilden zusammen einen Block, der mittig neben den Kanälen sitzt */
     column-gap: clamp(48px, 6vw, 96px);
     align-items: center;
     padding: 48px max(48px, calc((100vw - 1180px) / 2));
   }
   .header {
-    grid-column: 1; grid-row: 1;
-    align-self: end;
+    grid-column: 1; grid-row: 2;
     max-width: none;
     align-items: flex-start;
     text-align: left;
@@ -130,14 +129,14 @@ body.first-visit .legal { animation-duration: 0.45s; }
     transition: opacity 0.5s ease;
   }
   body.hex-drawing .header-claim, body.hex-hold .header-claim { opacity: 0; }
-  .content { grid-column: 2; grid-row: 1 / 4; width: 100%; }
-  /* Das Band kommt vom linken Bildschirmrand und läuft unter dem Text aus – so ist es ohne Scrollen zu sehen */
+  .content { grid-column: 2; grid-row: 1 / 5; width: 100%; }
+  /* Das Band liegt unter dem Text, genau so breit wie der Schriftzug, und läuft an beiden Enden weich aus */
   .band {
-    grid-column: 1; grid-row: 2;
+    grid-column: 1; grid-row: 3;
     height: 92px;
-    margin: 18px 0 0 calc(max(48px, (100vw - 1180px) / 2) * -1);
-    -webkit-mask-image: linear-gradient(90deg, #000 78%, transparent);
-    mask-image: linear-gradient(90deg, #000 78%, transparent);
+    margin: 22px 0 0;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
   }
   .band-in { top: 26px; padding: 11px 0; transform: rotate(-1.4deg); }
   .band-track span { font-size: 1.2rem; gap: 18px; padding-right: 18px; }
